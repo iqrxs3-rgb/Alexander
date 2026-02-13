@@ -1,6 +1,6 @@
 // استدعاء API من backend
 import axios from 'axios';
-import { API_URL } from "./config";
+const API_URL = import.meta.env.VITE_API_URL || "https://beirut.up.railway.app";
 
 export const loginUser = async (email, password) => {
   const res = await axios.post(`${API_URL}/auth/login`, { email, password });
