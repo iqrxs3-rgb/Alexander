@@ -1,0 +1,27 @@
+{
+  "name": "discord-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "لوحة تحكم لإدارة بوتات Discord",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.14.1",
+    "firebase": "^10.10.0",
+    "react-firebase-hooks": "^5.1.2",
+    "react-icons": "^4.10.1",
+    "axios": "^1.6.6"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "tailwindcss": "^3.3.3",
+    "postcss": "^8.4.31",
+    "autoprefixer": "^10.4.14",
+    "vite": "^4.5.0"
+  }
+}
