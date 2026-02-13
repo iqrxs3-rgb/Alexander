@@ -1,90 +1,56 @@
-// src/services/firebase.js
 import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  signInWithPopup,
-  OAuthProvider,
-  onAuthStateChanged,
-  signOut,
-} from "firebase/auth";
 import {
   getFirestore,
   collection,
-  getDocs,
   doc,
+  getDoc,
+  getDocs,
   setDoc,
-  updateDoc,
-  query,
-  where,
+  updateDoc
 } from "firebase/firestore";
 
-// ======= إعدادات Firebase =======
-const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_FIREBASE_PROJECT.firebaseapp.com",
-  projectId: "YOUR_FIREBASE_PROJECT",
-  storageBucket: "YOUR_FIREBASE_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-};
+  const firebaseConfig = {
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID
+  };
 
-// تهيئة Firebase
 const app = initializeApp(firebaseConfig);
-
-// ======= Auth =======
-const auth = getAuth(app);
-const provider = new OAuthProvider("discord.com");
-
-// دوال مساعدة لتسجيل الدخول والخروج
-const loginWithDiscord = async () => {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    return result.user;
-  } catch (err) {
-    console.error("فشل تسجيل الدخول:", err);
-    throw err;
-  }
-};
-
-const logout = async () => {
-  try {
-    await signOut(auth);
-  } catch (err) {
-    console.error("فشل تسجيل الخروج:", err);
-  }
-};
-
-// ======= Firestore =======
 const db = getFirestore(app);
 
-// دوال مساعدة لجلب البوتات الخاصة بالمستخدم
-const getUserBots = async (userId) => {
-  const q = query(collection(db, "bots"), where("ownerId", "==", userId));
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+export const getBot = async (botId) => {
+  const docRef = doc(db, "bots", botId);
+  const docSnap = await getDoc(docRef);
+  return docSnap.exists() ? docSnap.data() : null;
 };
 
-// دوال تحديث بيانات بوت
-const updateBot = async (botId, data) => {
-  const botRef = doc(db, "bots", botId);
-  await updateDoc(botRef, data);
+export const getAllBots = async () => {
+  const querySnapshot = await getDocs(collection(db, "bots"));
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-// دوال لإنشاء بوت جديد
-const createBot = async (botId, data) => {
-  const botRef = doc(db, "bots", botId);
-  await setDoc(botRef, data);
+export const updateBotData = async (botId, data) => {
+  const docRef = doc(db, "bots", botId);
+  await updateDoc(docRef, data);
+  const updated = await getDoc(docRef);
+  return updated.data();
 };
 
-export {
-  app,
-  auth,
-  provider,
-  loginWithDiscord,
-  logout,
-  db,
-  getUserBots,
-  updateBot,
-  createBot,
-  onAuthStateChanged,
+export const addBotData = async (botId, data) => {
+  const docRef = doc(db, "bots", botId);
+  await setDoc(docRef, data);
+};
+
+export const getBotStats = async (botId) => {
+  const docRef = doc(db, "stats", botId);
+  const docSnap = await getDoc(docRef);
+  return docSnap.exists() ? docSnap.data() : { history: [] };
+};
+
+export const updateBotStats = async (botId, data) => {
+  const docRef = doc(db, "stats", botId);
+  await setDoc(docRef, data, { merge: true });
 };

@@ -1,52 +1,41 @@
-// src/components/Sidebar.jsx
 import React, { useState } from "react";
-import { FaTachometerAlt, FaChartBar, FaCog, FaSignOutAlt } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { FaTachometerAlt, FaChartLine, FaRobot, FaCog } from "react-icons/fa";
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
 
   const menuItems = [
     { name: "Dashboard", icon: <FaTachometerAlt />, path: "/dashboard" },
-    { name: "Analytics", icon: <FaChartBar />, path: "/analytics" },
-    { name: "Settings", icon: <FaCog />, path: "/settings" },
-    { name: "Logout", icon: <FaSignOutAlt />, path: "/logout" },
+    { name: "Analytics", icon: <FaChartLine />, path: "/analytics" },
+    { name: "Bots", icon: <FaRobot />, path: "/bots" },
+    { name: "Settings", icon: <FaCog />, path: "/settings" }
   ];
 
   return (
-    <div
-      className={`bg-white h-screen shadow-lg p-5 flex flex-col justify-between transition-width duration-300 ${
-        collapsed ? "w-20" : "w-64"
-      }`}
-    >
-      <div>
-        <div className="mb-10 flex justify-between items-center">
-          {!collapsed && <h1 className="text-xl font-bold">لوحة البوتات</h1>}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="text-gray-500 focus:outline-none"
-          >
-            {collapsed ? ">>" : "<<"}
-          </button>
-        </div>
-        <nav className="flex flex-col gap-3">
-          {menuItems.map((item, idx) => (
+    <div className={`bg-white dark:bg-gray-900 h-screen p-4 shadow-lg transition-all duration-300 ${collapsed ? "w-20" : "w-64"}`}>
+      <button
+        className="mb-6 text-gray-800 dark:text-gray-200 focus:outline-none"
+        onClick={() => setCollapsed(!collapsed)}
+      >
+        {collapsed ? ">" : "<"}
+      </button>
+      <ul className="space-y-4">
+        {menuItems.map(item => (
+          <li key={item.name}>
             <Link
-              key={idx}
               to={item.path}
-              className="flex items-center gap-3 p-2 rounded hover:bg-gray-100 transition-colors"
+              className={`flex items-center p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 ${
+                location.pathname === item.path ? "bg-gray-200 dark:bg-gray-800" : ""
+              }`}
             >
-              <span className="text-gray-700">{item.icon}</span>
-              {!collapsed && <span>{item.name}</span>}
+              <span className="text-xl">{item.icon}</span>
+              {!collapsed && <span className="ml-3 text-gray-800 dark:text-gray-200">{item.name}</span>}
             </Link>
-          ))}
-        </nav>
-      </div>
-      {!collapsed && (
-        <div className="text-gray-400 text-sm mt-5">
-          &copy; 2026 Beirut Bots
-        </div>
-      )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

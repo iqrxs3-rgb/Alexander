@@ -1,36 +1,24 @@
-// backend/routes/auth.js
 const express = require("express");
 const router = express.Router();
+const { verifyToken } = require("../middleware/authMiddleware");
+const { loginUser, getUserProfile } = require("../controllers/authController");
 
-// Controllers
-const {
-  registerUser,
-  loginUser,
-  getUserProfile
-} = require("../controllers/authController");
+router.post("/login", async (req, res) => {
+  try {
+    const token = await loginUser(req.body);
+    res.json({ token });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
-// Middleware (لو حاب تستخدم حماية لبعض endpoints)
-const { verifyToken } = require("../middleware/auth");
-
-/**
- * @route   POST /api/auth/register
- * @desc    تسجيل مستخدم جديد
- * @access  Public
- */
-router.post("/register", registerUser);
-
-/**
- * @route   POST /api/auth/login
- * @desc    تسجيل دخول مستخدم
- * @access  Public
- */
-router.post("/login", loginUser);
-
-/**
- * @route   GET /api/auth/profile
- * @desc    جلب بيانات المستخدم الحالي
- * @access  Private
- */
-router.get("/profile", verifyToken, getUserProfile);
+router.get("/profile", verifyToken, async (req, res) => {
+  try {
+    const profile = await getUserProfile(req.userId);
+    res.json(profile);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 module.exports = router;

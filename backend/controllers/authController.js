@@ -1,122 +1,27 @@
-// backend/controllers/authController.js
-const bcrypt = require("bcryptjs");
+const { getDoc, doc } = require("firebase/firestore");
+const { db } = require("../utils/firebase");
 const jwt = require("jsonwebtoken");
 
-// يمكنك لاحقًا ربطه مع قاعدة بيانات Firebase أو أي DB أخرى
+const JWT_SECRET = process.env.JWT_SECRET || "secret_key";
 
-/**
- * تسجيل مستخدم جديد
- */
-const registerUser = async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
+async function loginUser({ email, password }) {
+  const usersRef = doc(db, "users", email);
+  const userSnap = await getDoc(usersRef);
+  if (!userSnap.exists()) throw new Error("User not found");
 
-    // تحقق من وجود البيانات
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: "جميع الحقول مطلوبة" });
-    }
+  const user = userSnap.data();
+  if (user.password !== password) throw new Error("Invalid password");
 
-    // هنا تقدر تتحقق إذا المستخدم موجود مسبقًا في DB
+  const token = jwt.sign({ userId: email }, JWT_SECRET, { expiresIn: "7d" });
+  return token;
+}
 
-    // تشفير كلمة المرور
-    const hashedPassword = await bcrypt.hash(password, 10);
+async function getUserProfile(userId) {
+  const userRef = doc(db, "users", userId);
+  const userSnap = await getDoc(userRef);
+  if (!userSnap.exists()) throw new Error("User not found");
+  const { password, ...profile } = userSnap.data();
+  return profile;
+}
 
-    // إنشاء مستخدم جديد في DB (placeholder)
-    const newUser = {
-      username,
-      email,
-      password: hashedPassword,
-      createdAt: new Date()
-    };
-
-    // إنشاء JWT token
-    const token = jwt.sign(
-      { id: newUser.id || "user_id_placeholder" },
-      process.env.JWT_SECRET || "secret",
-      { expiresIn: "7d" }
-    );
-
-    res.status(201).json({
-      success: true,
-      message: "تم تسجيل الحساب بنجاح",
-      user: newUser,
-      token
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "حدث خطأ" });
-  }
-};
-
-/**
- * تسجيل دخول مستخدم
- */
-const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    // تحقق من وجود البيانات
-    if (!email || !password) {
-      return res.status(400).json({ message: "جميع الحقول مطلوبة" });
-    }
-
-    // جلب المستخدم من DB (placeholder)
-    const user = {
-      id: "user_id_placeholder",
-      email,
-      password: "$2a$10$hashedpasswordplaceholder", // مثال
-      username: "exampleUser"
-    };
-
-    // التحقق من كلمة المرور
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "بيانات الدخول غير صحيحة" });
-    }
-
-    // إنشاء JWT token
-    const token = jwt.sign(
-      { id: user.id },
-      process.env.JWT_SECRET || "secret",
-      { expiresIn: "7d" }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "تم تسجيل الدخول بنجاح",
-      user,
-      token
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "حدث خطأ" });
-  }
-};
-
-/**
- * جلب بيانات المستخدم الحالي
- */
-const getUserProfile = async (req, res) => {
-  try {
-    // في الحقيقة تستخدم req.user بعد verifyToken
-    const user = req.user || {
-      id: "user_id_placeholder",
-      username: "exampleUser",
-      email: "example@example.com"
-    };
-
-    res.status(200).json({
-      success: true,
-      user
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "حدث خطأ" });
-  }
-};
-
-module.exports = {
-  registerUser,
-  loginUser,
-  getUserProfile
-};
+module.exports = { loginUser, getUserProfile };

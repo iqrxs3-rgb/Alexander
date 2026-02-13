@@ -1,63 +1,23 @@
-// backend/utils/helpers.js
+function formatDate(date) {
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${year}-${month}-${day}`;
+}
 
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+function calculatePercentage(part, total) {
+  if (total === 0) return 0;
+  return Math.round((part / total) * 100);
+}
 
-/**
- * تشفير كلمة المرور
- * @param {string} password
- * @returns {Promise<string>} hashed password
- */
-const hashPassword = async (password) => {
-  const salt = await bcrypt.genSalt(10);
-  return await bcrypt.hash(password, salt);
-};
+function generateRandomId(length = 8) {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
 
-/**
- * التحقق من كلمة المرور
- * @param {string} password
- * @param {string} hashedPassword
- * @returns {Promise<boolean>}
- */
-const comparePassword = async (password, hashedPassword) => {
-  return await bcrypt.compare(password, hashedPassword);
-};
-
-/**
- * إنشاء JWT token
- * @param {string} userId
- * @param {string} expiresIn
- * @returns {string} token
- */
-const generateToken = (userId, expiresIn = "7d") => {
-  return jwt.sign(
-    { id: userId },
-    process.env.JWT_SECRET || "secret",
-    { expiresIn }
-  );
-};
-
-/**
- * مثال دالة مساعدة لتنسيق الأرقام (لـ stats)
- * @param {number} num
- * @returns {string} formatted number
- */
-const formatNumber = (num) => {
-  return num.toLocaleString();
-};
-
-/**
- * دالة مساعدة لتوقيت الوقت الحالي بصيغة ISO
- * @returns {string}
- */
-const getCurrentTimestamp = () => {
-  return new Date().toISOString();
-};
-
-module.exports = {
-  hashPassword,
-  comparePassword,
-  generateToken,
-  formatNumber,
-  getCurrentTimestamp
-};
+module.exports = { formatDate, calculatePercentage, generateRandomId };

@@ -1,28 +1,24 @@
-// backend/routes/stats.js
 const express = require("express");
 const router = express.Router();
+const { verifyToken } = require("../middleware/authMiddleware");
+const { getBotStatsData, updateBotStatsData } = require("../controllers/statsController");
 
-// Controllers
-const {
-  getBotStats,
-  getAllBotsStats
-} = require("../controllers/statsController");
+router.get("/:botId", verifyToken, async (req, res) => {
+  try {
+    const stats = await getBotStatsData(req.params.botId);
+    res.json(stats);
+  } catch (err) {
+    res.status(404).json({ error: "Stats not found" });
+  }
+});
 
-// Middleware حماية
-const { verifyToken } = require("../middleware/auth");
-
-/**
- * @route   GET /api/stats/:botId
- * @desc    جلب إحصائيات بوت محدد
- * @access  Private
- */
-router.get("/:botId", verifyToken, getBotStats);
-
-/**
- * @route   GET /api/stats/
- * @desc    جلب إحصائيات كل البوتات للمستخدم الحالي
- * @access  Private
- */
-router.get("/", verifyToken, getAllBotsStats);
+router.put("/:botId", verifyToken, async (req, res) => {
+  try {
+    const updatedStats = await updateBotStatsData(req.params.botId, req.body);
+    res.json(updatedStats);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;

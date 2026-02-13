@@ -1,60 +1,58 @@
-// src/pages/Login.jsx
-import React, { useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, provider } from "../services/firebase"; // Firebase Auth + Discord provider
-import { signInWithPopup, onAuthStateChanged } from "firebase/auth";
-import logo from "../assets/logo.png"; // شعار الموقع
+import { loginUser } from "../services/AuthService";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    // لو المستخدم مسجل دخول، يروح مباشرة للـ Dashboard
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        navigate("/dashboard");
-      }
-    });
-    return () => unsubscribe();
-  }, [navigate]);
-
-  const handleLogin = () => {
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        console.log("تم تسجيل الدخول:", result.user);
-        navigate("/dashboard");
-      })
-      .catch((err) => {
-        console.error("خطأ أثناء تسجيل الدخول:", err);
-        alert("فشل تسجيل الدخول، حاول مرة ثانية");
-      });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      const response = await loginUser({ email, password });
+      localStorage.setItem("token", response.token);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.message || "Login failed");
+    }
+    setLoading(false);
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gradient-to-r from-blue-400 to-purple-500">
-      <div className="bg-white rounded-xl shadow-xl p-10 w-full max-w-md text-center">
-        <img src={logo} alt="Logo" className="w-24 mx-auto mb-6" />
-        <h1 className="text-3xl font-bold mb-4">مرحبا بك في لوحة البوتات</h1>
-        <p className="text-gray-600 mb-6">
-          سجل دخولك عبر Discord للبدء في إدارة بوتاتك.
-        </p>
-        <button
-          onClick={handleLogin}
-          className="flex items-center justify-center gap-2 w-full bg-discord hover:bg-discord-dark text-white font-semibold py-3 rounded-lg transition-colors"
-        >
-          تسجيل الدخول عبر Discord
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            viewBox="0 0 24 24"
-            fill="currentColor"
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+      <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white text-center">Login</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+            required
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white font-bold"
           >
-            <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14h-2v-4H7v-2h3V7h2v4h3v2h-3v4z" />
-          </svg>
-        </button>
-        <p className="text-gray-400 mt-6 text-xs">
-          باستخدام تسجيل الدخول، أنت توافق على شروطنا وسياسة الخصوصية.
-        </p>
+            {loading ? "Logging in..." : "Login"}
+          </button>
+          {error && <p className="text-red-500 text-center mt-2">{error}</p>}
+        </form>
       </div>
     </div>
   );

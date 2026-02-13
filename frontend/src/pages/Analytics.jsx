@@ -1,81 +1,69 @@
 import React, { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
-import Chart from "../components/Chart";
-import { getFirestore, collection, getDocs, query, where } from "firebase/firestore";
-import { auth } from "../services/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { getBotStats } from "../services/StatsService";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+} from "chart.js";
 
-const Analytics = () => {
-  const [user, setUser] = useState(null);
-  const [bots, setBots] = useState([]);
-  const [chartData, setChartData] = useState([]);
-  const db = getFirestore();
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-  // جلب المستخدم الحالي
+const Analytics = ({ botId }) => {
+  const [stats, setStats] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
+    fetchStats();
+  }, [botId]);
 
-  // جلب البوتات والإحصائيات
-  useEffect(() => {
-    if (!user) return;
+  const fetchStats = async () => {
+    setLoading(true);
+    const data = await getBotStats(botId);
+    setStats(data.history || []);
+    setLoading(false);
+  };
 
-    const fetchBots = async () => {
-      const q = query(collection(db, "bots"), where("ownerId", "==", user.uid));
-      const snapshot = await getDocs(q);
-      const botsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setBots(botsData);
+  const chartData = {
+    labels: stats.map(s => s.date),
+    datasets: [
+      {
+        label: "Active Users",
+        data: stats.map(s => s.usersCount),
+        borderColor: "#3B82F6",
+        backgroundColor: "rgba(59, 130, 246, 0.2)",
+        tension: 0.3,
+        fill: true
+      },
+      {
+        label: "Server Count",
+        data: stats.map(s => s.serversCount),
+        borderColor: "#10B981",
+        backgroundColor: "rgba(16, 185, 129, 0.2)",
+        tension: 0.3,
+        fill: true
+      }
+    ]
+  };
 
-      // تجهيز بيانات الرسوم البيانية (مثال: مجموع المستخدمين والسيرفرات لكل بوت)
-      const chartArray = botsData.map((bot) => ({
-        name: bot.name,
-        users: bot.users || 0,
-        servers: bot.servers || 0,
-        commands: bot.commands || 0,
-      }));
-      setChartData(chartArray);
-    };
+  const options = {
+    responsive: true,
+    plugins: { legend: { position: "top" } },
+    scales: { y: { beginAtZero: true } }
+  };
 
-    fetchBots();
-  }, [user]);
+  if (loading) return <div className="text-center mt-10 text-gray-500">Loading...</div>;
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Navbar user={user} />
-        <main className="p-6 overflow-auto">
-          <h1 className="text-3xl font-bold mb-6">تحليلات البوتات</h1>
-
-          {bots.length === 0 ? (
-            <p className="text-gray-500">لا توجد بوتات لعرض البيانات.</p>
-          ) : (
-            <>
-              {/* Chart لكل البوتات */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {bots.map((bot) => (
-                  <Chart
-                    key={bot.id}
-                    data={[
-                      {
-                        date: new Date().toLocaleDateString(),
-                        users: bot.users || 0,
-                        servers: bot.servers || 0,
-                        commands: bot.commands || 0,
-                      },
-                    ]}
-                    keys={["users", "servers", "commands"]}
-                    type="bar"
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </main>
+    <div className="p-6">
+      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Bot Analytics</h2>
+        <Line data={chartData} options={options} />
       </div>
     </div>
   );

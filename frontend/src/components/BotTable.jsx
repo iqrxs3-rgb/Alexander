@@ -1,71 +1,63 @@
-// src/components/BotTable.jsx
-import React from "react";
-import { FaEdit, FaChartBar, FaTrash } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+import { FaToggleOn, FaToggleOff } from "react-icons/fa";
+import { getBots, updateBot } from "../services/BotsService";
 
-/**
- * BotTable component
- * @param {Array} bots - مصفوفة البوتات [{id, name, status, users, servers}]
- * @param {Function} onEdit - callback للتعديل
- * @param {Function} onDelete - callback للحذف
- * @param {Function} onStats - callback لعرض الإحصائيات
- */
-const BotTable = ({ bots, onEdit, onDelete, onStats }) => {
+const BotTable = () => {
+  const [bots, setBots] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchBots();
+  }, []);
+
+  const fetchBots = async () => {
+    setLoading(true);
+    const data = await getBots();
+    setBots(data || []);
+    setLoading(false);
+  };
+
+  const toggleFeature = async (botId, feature) => {
+    const bot = bots.find(b => b.id === botId);
+    const updatedFeatures = { ...bot.features, [feature]: !bot.features[feature] };
+    const updatedBot = await updateBot(botId, updatedFeatures);
+    setBots(prev =>
+      prev.map(b => (b.id === botId ? { ...b, features: updatedBot.features } : b))
+    );
+  };
+
+  if (loading) return <div className="text-center mt-10 text-gray-500">Loading...</div>;
+
   return (
-    <div className="bg-white shadow-lg rounded-lg overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              اسم البوت
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              الحالة
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              المستخدمين
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              السيرفرات
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              أفعال
-            </th>
+    <div className="overflow-x-auto mt-6">
+      <table className="min-w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+        <thead>
+          <tr className="text-left border-b border-gray-200 dark:border-gray-700">
+            <th className="px-6 py-3">Bot Name</th>
+            <th className="px-6 py-3">Server Count</th>
+            <th className="px-6 py-3">Users</th>
+            <th className="px-6 py-3">Features</th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {bots.map((bot) => (
-            <tr key={bot.id}>
-              <td className="px-6 py-4 whitespace-nowrap">{bot.name}</td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    bot.status === "online" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {bot.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">{bot.users}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{bot.servers}</td>
-              <td className="px-6 py-4 whitespace-nowrap flex gap-2">
-                <button
-                  onClick={() => onEdit(bot.id)}
-                  className="text-blue-500 hover:text-blue-700"
-                >
-                  <FaEdit />
-                </button>
-                <button
-                  onClick={() => onStats(bot.id)}
-                  className="text-green-500 hover:text-green-700"
-                >
-                  <FaChartBar />
-                </button>
-                <button
-                  onClick={() => onDelete(bot.id)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <FaTrash />
-                </button>
+        <tbody>
+          {bots.map(bot => (
+            <tr key={bot.id} className="border-b border-gray-200 dark:border-gray-700">
+              <td className="px-6 py-4 text-gray-800 dark:text-gray-200">{bot.name}</td>
+              <td className="px-6 py-4 text-gray-800 dark:text-gray-200">{bot.serversCount || 0}</td>
+              <td className="px-6 py-4 text-gray-800 dark:text-gray-200">{bot.usersCount || 0}</td>
+              <td className="px-6 py-4 flex space-x-3">
+                {Object.keys(bot.features || {}).map(feature => (
+                  <button
+                    key={feature}
+                    onClick={() => toggleFeature(bot.id, feature)}
+                    className={`flex items-center px-3 py-1 rounded-full text-white ${
+                      bot.features[feature] ? "bg-green-500" : "bg-red-500"
+                    }`}
+                  >
+                    {bot.features[feature] ? <FaToggleOn className="mr-1" /> : <FaToggleOff className="mr-1" />}
+                    {feature}
+                  </button>
+                ))}
               </td>
             </tr>
           ))}

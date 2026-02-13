@@ -1,36 +1,33 @@
-// backend/routes/bots.js
 const express = require("express");
 const router = express.Router();
+const { verifyToken } = require("../middleware/authMiddleware");
+const { getBotsData, getBotById, updateBotData } = require("../controllers/botsController");
 
-// Controllers
-const {
-  getBots,
-  getBotById,
-  updateBot
-} = require("../controllers/botsController");
+router.get("/", verifyToken, async (req, res) => {
+  try {
+    const bots = await getBotsData();
+    res.json(bots);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-// Middleware حماية
-const { verifyToken } = require("../middleware/auth");
+router.get("/:botId", verifyToken, async (req, res) => {
+  try {
+    const bot = await getBotById(req.params.botId);
+    res.json(bot);
+  } catch (err) {
+    res.status(404).json({ error: "Bot not found" });
+  }
+});
 
-/**
- * @route   GET /api/bots/
- * @desc    جلب كل البوتات للمستخدم الحالي
- * @access  Private
- */
-router.get("/", verifyToken, getBots);
-
-/**
- * @route   GET /api/bots/:botId
- * @desc    جلب بيانات بوت محدد
- * @access  Private
- */
-router.get("/:botId", verifyToken, getBotById);
-
-/**
- * @route   PUT /api/bots/:botId
- * @desc    تعديل بيانات بوت موجود
- * @access  Private
- */
-router.put("/:botId", verifyToken, updateBot);
+router.put("/:botId", verifyToken, async (req, res) => {
+  try {
+    const updated = await updateBotData(req.params.botId, req.body);
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;

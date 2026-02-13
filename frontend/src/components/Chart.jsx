@@ -1,55 +1,67 @@
-// src/components/Chart.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { Line } from "react-chartjs-2";
+import { getBotStats } from "../services/StatsService";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
   Tooltip,
-  Legend,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-} from "recharts";
+  Legend
+} from "chart.js";
 
-/**
- * Chart component ديناميكي
- * @param {Array} data - بيانات الرسم [{date: '2026-02-13', users: 100, servers: 50}]
- * @param {String} type - نوع الرسم ('line' أو 'bar')
- * @param {Array} keys - مفاتيح البيانات ['users', 'servers', 'commands']
- * @param {Array} colors - ألوان الخطوط أو الأعمدة ['#4f46e5','#f59e0b','#10b981']
- */
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const Chart = ({ data, type = "line", keys = ["users", "servers"], colors = ["#4f46e5", "#f59e0b"] }) => {
+const Chart = ({ botId }) => {
+  const [stats, setStats] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, [botId]);
+
+  const fetchStats = async () => {
+    setLoading(true);
+    const data = await getBotStats(botId);
+    setStats(data.history || []);
+    setLoading(false);
+  };
+
+  const chartData = {
+    labels: stats.map(s => s.date),
+    datasets: [
+      {
+        label: "Active Users",
+        data: stats.map(s => s.usersCount),
+        borderColor: "#4F46E5",
+        backgroundColor: "rgba(79, 70, 229, 0.2)",
+        tension: 0.4,
+        fill: true
+      },
+      {
+        label: "Server Count",
+        data: stats.map(s => s.serversCount),
+        borderColor: "#10B981",
+        backgroundColor: "rgba(16, 185, 129, 0.2)",
+        tension: 0.4,
+        fill: true
+      }
+    ]
+  };
+
+  const options = {
+    responsive: true,
+    plugins: { legend: { position: "top" } },
+    scales: { y: { beginAtZero: true } }
+  };
+
+  if (loading) return <div className="text-center mt-10 text-gray-500">Loading...</div>;
+
   return (
-    <div className="bg-white shadow-lg rounded-lg p-5 w-full">
-      <h2 className="text-xl font-bold mb-4">إحصائيات البوت</h2>
-      <ResponsiveContainer width="100%" height={300}>
-        {type === "line" ? (
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            {keys.map((key, idx) => (
-              <Line key={key} type="monotone" dataKey={key} stroke={colors[idx % colors.length]} strokeWidth={2} />
-            ))}
-          </LineChart>
-        ) : (
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            {keys.map((key, idx) => (
-              <Bar key={key} dataKey={key} fill={colors[idx % colors.length]} />
-            ))}
-          </BarChart>
-        )}
-      </ResponsiveContainer>
+    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 mt-6">
+      <Line data={chartData} options={options} />
     </div>
   );
 };

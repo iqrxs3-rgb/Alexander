@@ -1,99 +1,35 @@
 import React, { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
 import DashboardCard from "../components/DashboardCard";
 import BotTable from "../components/BotTable";
 import Chart from "../components/Chart";
-import { getFirestore, collection, getDocs, query, where } from "firebase/firestore";
-import { auth } from "../services/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { getBots } from "../services/BotsService";
 
 const Dashboard = () => {
-  const [user, setUser] = useState(null);
   const [bots, setBots] = useState([]);
-  const [statsData, setStatsData] = useState([]);
-
-  const db = getFirestore();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) setUser(currentUser);
-    });
-    return () => unsubscribe();
+    fetchBots();
   }, []);
 
- 
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchBots = async () => {
-      const q = query(collection(db, "bots"), where("ownerId", "==", user.uid));
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setBots(data);
-
-      // إعداد بيانات الـ Chart
-      const chartData = data.map((bot) => ({
-        date: new Date().toLocaleDateString(),
-        users: bot.users || 0,
-        servers: bot.servers || 0,
-        commands: bot.commands || 0,
-      }));
-      setStatsData(chartData);
-    };
-
-    fetchBots();
-  }, [user]);
-
-  // دوال التحكم بالبوتات
-  const handleEdit = (botId) => {
-    console.log("Edit bot", botId);
+  const fetchBots = async () => {
+    setLoading(true);
+    const data = await getBots();
+    setBots(data || []);
+    setLoading(false);
   };
-  const handleDelete = (botId) => {
-    console.log("Delete bot", botId);
-  };
-  const handleStats = (botId) => {
-    console.log("Show stats for bot", botId);
-  };
+
+  if (loading) return <div className="text-center mt-10 text-gray-500">Loading...</div>;
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Navbar user={user} />
-
-        <main className="p-6 overflow-auto">
-          <h1 className="text-3xl font-bold mb-6">لوحة التحكم</h1>
-
-          {/* Dashboard Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {bots.map((bot) => (
-              <DashboardCard
-                key={bot.id}
-                title={bot.name}
-                value={`Users: ${bot.users || 0}`}
-                iconType="users"
-                color="border-blue-500"
-              />
-            ))}
-          </div>
-
-          {/* Chart */}
-          <div className="mb-6">
-            <Chart data={statsData} keys={["users", "servers", "commands"]} type="line" />
-          </div>
-
-          {/* Bot Table */}
-          <div>
-            <BotTable
-              bots={bots}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onStats={handleStats}
-            />
-          </div>
-        </main>
+    <div className="p-6">
+      <div className="flex flex-wrap">
+        <DashboardCard title="Total Bots" value={bots.length} color="bg-indigo-500" />
+        <DashboardCard title="Total Servers" value={bots.reduce((acc, b) => acc + (b.serversCount || 0), 0)} color="bg-green-500" />
+        <DashboardCard title="Total Users" value={bots.reduce((acc, b) => acc + (b.usersCount || 0), 0)} color="bg-blue-500" />
       </div>
+      <BotTable />
+      <Chart botId={bots[0]?.id} />
     </div>
   );
 };
