@@ -1,26 +1,31 @@
 {
   "name": "dashboard-bots",
   "version": "1.0.0",
-  "description": "لوحة تحكم للبوتات على ديسكورد باستخدام React و Node.js و Firebase",
+  "description": "Dashboard for managing Discord bots with Firebase",
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js",
-    "frontend": "cd frontend && npm start",
+    "dev": "concurrently \"nodemon backend/server.js\" \"cd frontend && npm start\"",
     "build": "cd frontend && npm run build"
   },
-  "author": "جعفر أبو إليا",
+  "keywords": ["discord", "dashboard", "firebase", "react", "tailwind"],
+  "author": "جعفر",
   "license": "MIT",
   "dependencies": {
-    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "firebase": "^11.3.0",
-    "jsonwebtoken": "^9.1.1",
-    "morgan": "^1.10.0"
+    "firebase": "^10.12.0",
+    "jsonwebtoken": "^8.5.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.14.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.0.2",
+    "tailwindcss": "^3.3.4",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.30"
   }
 }
