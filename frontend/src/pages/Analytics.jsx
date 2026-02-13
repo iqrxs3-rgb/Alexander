@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getBotStats } from "../services/StatsService";
+import { getBotStats } from "../services/statsService";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
