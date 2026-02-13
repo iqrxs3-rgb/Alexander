@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
-import { getBotStats } from "../services/StatsService";
+import { getBotStats } from "../services/statsService";
 import {
   Chart as ChartJS,
   CategoryScale,
