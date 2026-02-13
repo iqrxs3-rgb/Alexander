@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getBotById, updateBot } from "../services/BotsService";
+import { getBotById, updateBot } from "../services/botService";
 import { FaToggleOn, FaToggleOff } from "react-icons/fa";
 
 const BotDetail = () => {

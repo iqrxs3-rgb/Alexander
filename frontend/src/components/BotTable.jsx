@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaToggleOn, FaToggleOff } from "react-icons/fa";
-import { getBots, updateBot } from "../services/BotsService";
+import { getAllBots, updateBot } from "../services/botService";
 
 const BotTable = () => {
   const [bots, setBots] = useState([]);
@@ -12,7 +12,7 @@ const BotTable = () => {
 
   const fetchBots = async () => {
     setLoading(true);
-    const data = await getBots();
+    const data = await getAllBots();
     setBots(data || []);
     setLoading(false);
   };

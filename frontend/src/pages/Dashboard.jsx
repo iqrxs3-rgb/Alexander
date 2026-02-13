@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import DashboardCard from "../components/DashboardCard";
 import BotTable from "../components/BotTable";
 import Chart from "../components/Chart";
-import { getBots } from "../services/BotsService";
+import { getBots } from "../services/botService";
 
 const Dashboard = () => {
   const [bots, setBots] = useState([]);

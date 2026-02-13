@@ -1,56 +1,20 @@
-import { initializeApp } from "firebase/app";
-import {
-  getFirestore,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-  updateDoc
-} from "firebase/firestore";
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 
-  const firebaseConfig = {
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID
-  };
-
+const firebaseConfig = {
+  apiKey: "AIzaSyATqaMK4ZBCd-C4EdfGcMQNAqJXR-8Qfrc",
+  authDomain: "beirutbots.firebaseapp.com",
+  databaseURL: "https://beirutbots-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "beirutbots",
+  storageBucket: "beirutbots.firebasestorage.app",
+  messagingSenderId: "344670989751",
+  appId: "1:344670989751:web:5b136557d1a4ca09c1cc32",
+  measurementId: "G-F51NB14L9G"
+};
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export { collection, doc, getDoc, getDocs, setDoc };
 
-export const getBot = async (botId) => {
-  const docRef = doc(db, "bots", botId);
-  const docSnap = await getDoc(docRef);
-  return docSnap.exists() ? docSnap.data() : null;
-};
-
-export const getAllBots = async () => {
-  const querySnapshot = await getDocs(collection(db, "bots"));
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-};
-
-export const updateBotData = async (botId, data) => {
-  const docRef = doc(db, "bots", botId);
-  await updateDoc(docRef, data);
-  const updated = await getDoc(docRef);
-  return updated.data();
-};
-
-export const addBotData = async (botId, data) => {
-  const docRef = doc(db, "bots", botId);
-  await setDoc(docRef, data);
-};
-
-export const getBotStats = async (botId) => {
-  const docRef = doc(db, "stats", botId);
-  const docSnap = await getDoc(docRef);
-  return docSnap.exists() ? docSnap.data() : { history: [] };
-};
-
-export const updateBotStats = async (botId, data) => {
-  const docRef = doc(db, "stats", botId);
-  await setDoc(docRef, data, { merge: true });
-};
+export default app;

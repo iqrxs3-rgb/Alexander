@@ -14,7 +14,7 @@ const Login = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await loginUser({ email, password });
+      const response = await loginUser( email, password);
       localStorage.setItem("token", response.token);
       navigate("/dashboard");
     } catch (err) {
